@@ -29,6 +29,8 @@ services:
     depends_on:
       - spark-master
     container_name: spark-worker
+    ports:
+      - "8089:8081"
     environment:
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 4g
