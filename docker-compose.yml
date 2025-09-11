@@ -1,0 +1,44 @@
+services: 
+  spark-master:
+    build:
+      context: ./spark-master
+    container_name: spark-master
+    user: root
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8083:8080"     # UI
+      - "7077:7077"     # Master RPC
+    environment:
+      SPARK_MASTER_HOST: spark-master
+      SPARK_MASTER_PORT: 7077
+      SPARK_MASTER_WEBUI_PORT: 8080
+      # keeps the master in foreground (also set in CMD)
+      SPARK_NO_DAEMONIZE: "1"
+    networks:
+      - minio
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+
+  spark-worker:
+    build:
+      context: ./spark-worker
+    depends_on:
+      - spark-master
+    container_name: spark-worker
+    environment:
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 4g
+      SPARK_NO_DAEMONIZE: "1"
+    command: ["/opt/spark/sbin/start-worker.sh", "spark://spark-master:7077"]
+    networks: [minio]
+
+
+
+networks:
+  minio:
+    external: true
+    name: minio_minio
