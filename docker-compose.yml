@@ -15,8 +15,11 @@ services:
       SPARK_MASTER_WEBUI_PORT: 8080
       # keeps the master in foreground (also set in CMD)
       SPARK_NO_DAEMONIZE: "1"
+      PYSPARK_PYTHON: /opt/conda/bin/python
+      PYSPARK_DRIVER_PYTHON: /opt/conda/bin/python
     networks:
       - minio
+      - credit_risk
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080 || exit 1"]
       interval: 10s
@@ -35,12 +38,15 @@ services:
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 4g
       SPARK_NO_DAEMONIZE: "1"
+      PYSPARK_PYTHON: /opt/conda/bin/python
+      PYSPARK_DRIVER_PYTHON: /opt/conda/bin/python
     command: ["/opt/spark/sbin/start-worker.sh", "spark://spark-master:7077"]
-    networks: [minio]
-
-
+    networks: [minio, credit_risk]
 
 networks:
   minio:
     external: true
     name: minio_minio
+  credit_risk:
+    external: true
+    name: credit_risk_shared
